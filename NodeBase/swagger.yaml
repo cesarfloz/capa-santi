@@ -1,0 +1,782 @@
+openapi: "3.0.0"
+info:
+  title: New Inntech S.A.S API - Capacitacion
+  description: New Inntech S.A.S API - API Capacitacion
+  version: 1.0.0
+  contact:
+    email: "gerencia@newinntech.com"
+servers:
+  - url: "http://localhost:4000"
+    variables:
+      Ambiente:
+        default: "qa"
+paths:
+  /accounts/{id}:
+    get:
+      parameters:
+        - in: path
+          name: id
+          description: Account id
+          required: true
+          example: "5eb12e197e06a76ccdefc121"
+          schema:
+            type: string
+      tags:
+        - JWT Auth
+      summary: Obtenga una sola cuenta por id
+      description: Los usuarios administradores pueden acceder a cualquier cuenta, los usuarios regulares están restringidos a su propia cuenta.
+      operationId: getAccountById
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Detalles de la cuenta especificada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  title:
+                    type: string
+                    example: "Mr"
+                  firstName:
+                    type: string
+                    example: "Jason"
+                  lastName:
+                    type: string
+                    example: "Watmore"
+                  email:
+                    type: string
+                    example: "newinntechsas@gmail.com"
+                  role:
+                    type: string
+                    example: "Admin"
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  updated:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+    put:
+      parameters:
+        - in: path
+          name: id
+          description: Account id
+          required: true
+          example: "5eb12e197e06a76ccdefc121"
+          schema:
+            type: string
+      tags:
+        - JWT Auth
+      summary: Actualizar una cuenta
+      description: Los usuarios administradores pueden actualizar cualquier cuenta, incluido el rol, los usuarios regulares están restringidos a su propia cuenta y no pueden actualizar el rol.
+      operationId: updateAccount
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Mr"
+                firstName:
+                  type: string
+                  example: "Jason"
+                lastName:
+                  type: string
+                  example: "Watmore"
+                email:
+                  type: string
+                  example: "newinntechsas@gmail.com"
+                password:
+                  type: string
+                  example: "newinntech"
+                confirmPassword:
+                  type: string
+                  example: "newinntech"
+                role:
+                  type: string
+                  enum: [Admin, User]
+      responses:
+        "200":
+          description: Cuenta actualizada correctamente. Se devuelven los detalles de la cuenta actualizada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  title:
+                    type: string
+                    example: "Mr"
+                  firstName:
+                    type: string
+                    example: "Jason"
+                  lastName:
+                    type: string
+                    example: "Watmore"
+                  email:
+                    type: string
+                    example: "newinntechsas@gmail.com"
+                  role:
+                    type: string
+                    example: "Admin"
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  updated:
+                    type: string
+                    example: "2020-05-08T03:11:21.553Z"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+    delete:
+      parameters:
+        - in: path
+          name: id
+          description: Account id
+          required: true
+          example: "5eb12e197e06a76ccdefc121"
+          schema:
+            type: string
+      tags:
+        - JWT Auth
+      summary: Eliminar una cuenta
+      description: Los usuarios administradores pueden eliminar cualquier cuenta, los usuarios regulares están restringidos a su propia cuenta.
+      operationId: deleteAccount
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Cuenta eliminada con éxito
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account deleted successfully"
+        "404":
+          $ref: "#/components/responses/NotFoundError"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /accounts/verify-email:
+    post:
+      tags:
+        - JWT Auth
+      summary: Verifique una nueva cuenta con un token de verificación recibido por correo electrónico después del registro
+      operationId: verifyEmail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: "3c7f8d9c4cb348ff95a0b74a1452aa24fc9611bb76768bb9eafeeb826ddae2935f1880bc7713318f"
+              required:
+                - token
+      responses:
+        "200":
+          description: La verificación se realizó correctamente, por lo que ahora puede iniciar sesión en la cuenta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Verification successful, you can now login"
+        "400":
+          description: La verificación falló debido a un token no válido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Verification failed"
+
+  /accounts/register:
+    post:
+      tags:
+        - JWT Auth
+      summary: Registre una nueva cuenta de usuario y envíe un correo electrónico de verificación
+      description: A la primera cuenta registrada en el sistema se le asigna el rol de "Administrador", a otras cuentas se le asigna el rol de "Usuario".
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Mr"
+                firstName:
+                  type: string
+                  example: "Jason"
+                lastName:
+                  type: string
+                  example: "Watmore"
+                email:
+                  type: string
+                  example: "newinntechsas@gmail.com"
+                phone:
+                  type: string
+                  example: "3217308012"
+                password:
+                  type: string
+                  example: "NewInntech@123"
+                confirmPassword:
+                  type: string
+                  example: "NewInntech@123"
+                acceptTerms:
+                  type: boolean
+              required:
+                - title
+                - firstName
+                - lastName
+                - email
+                - password
+                - phone
+                - confirmPassword
+                - acceptTerms
+      responses:
+        "200":
+          description: La solicitud de registro se realizó correctamente y se envió un correo electrónico de verificación a la dirección de correo electrónico especificada.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Registration successful, please check your email for verification instructions"
+
+  /accounts/refresh-token:
+    post:
+      tags:
+        - JWT Auth
+      summary: Utilice un token de actualización para generar un nuevo token JWT y un nuevo token de actualización
+      description: El token de actualización se envía y se devuelve mediante cookies.
+      operationId: refreshToken
+      parameters:
+        - in: cookie
+          name: refreshToken
+          description: La cookie `refreshToken`
+          schema:
+            type: string
+            example: 51872eca5efedcf424db4cf5afd16a9d00ad25b743a034c9c221afc85d18dcd5e4ad6e3f08607550
+      responses:
+        "200":
+          description: Detalles de la cuenta, un token de acceso JWT y una nueva cookie de token de actualización
+          headers:
+            Set-Cookie:
+              description: "`refreshToken`"
+              schema:
+                type: string
+                example: refreshToken=51872eca5efedcf424db4cf5afd16a9d00ad25b743a034c9c221afc85d18dcd5e4ad6e3f08607550; Path=/; Expires=Tue, 16 Jun 2020 09:14:17 GMT; HttpOnly
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  title:
+                    type: string
+                    example: "Mr"
+                  firstName:
+                    type: string
+                    example: "Jason"
+                  lastName:
+                    type: string
+                    example: "Watmore"
+                  email:
+                    type: string
+                    example: "jason@example.com"
+                  role:
+                    type: string
+                    example: "Admin"
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  isVerified:
+                    type: boolean
+                    example: true
+                  jwtToken:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZWIxMmUxOTdlMDZhNzZjY2RlZmMxMjEiLCJpZCI6IjVlYjEyZTE5N2UwNmE3NmNjZGVmYzEyMSIsImlhdCI6MTU4ODc1ODE1N30.xR9H0STbFOpSkuGA9jHNZOJ6eS7umHHqKRhI807YT1Y"
+        "400":
+          description: El token de actualización no es válido, está revocado o vencido.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid token"
+
+  /accounts/authenticate:
+    post:
+      tags:
+        - JWT Auth
+      summary: Autenticar las credenciales de la cuenta y devolver un token JWT y una cookie con un token de actualización.
+      description: Las cuentas deben verificarse antes de autenticarse.
+      operationId: authenticate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "newinntechsas@gmail.com"
+                password:
+                  type: string
+                  example: "NewInntech@123"
+              required:
+                - email
+                - password
+      responses:
+        "200":
+          description: Detalles de la cuenta, un token de acceso JWT y una cookie de token de actualización
+          headers:
+            Set-Cookie:
+              description: "`refreshToken`"
+              schema:
+                type: string
+                example: refreshToken=51872eca5efedcf424db4cf5afd16a9d00ad25b743a034c9c221afc85d18dcd5e4ad6e3f08607550; Path=/; Expires=Tue, 16 Jun 2020 09:14:17 GMT; HttpOnly
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  title:
+                    type: string
+                    example: "Mr"
+                  firstName:
+                    type: string
+                    example: "Jason"
+                  lastName:
+                    type: string
+                    example: "Watmore"
+                  email:
+                    type: string
+                    example: "jason@example.com"
+                  role:
+                    type: string
+                    example: "Admin"
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+                  isVerified:
+                    type: boolean
+                    example: true
+                  jwtToken:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZWIxMmUxOTdlMDZhNzZjY2RlZmMxMjEiLCJpZCI6IjVlYjEyZTE5N2UwNmE3NmNjZGVmYzEyMSIsImlhdCI6MTU4ODc1ODE1N30.xR9H0STbFOpSkuGA9jHNZOJ6eS7umHHqKRhI807YT1Y"
+        "400":
+          description: El correo electrónico o la contraseña son incorrectos.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email or password is incorrect"
+
+  /accounts/revoke-token:
+    post:
+      tags:
+        - JWT Auth
+      summary: Revocar un token de actualización
+      description: Los usuarios administradores pueden revocar los tokens de cualquier cuenta, los usuarios normales solo pueden revocar sus propios tokens.
+      operationId: revokeToken
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: cookie
+          name: refreshToken
+          description: El token de actualización se puede enviar en una cookie o en el cuerpo de la publicación, si ambos se envían, se usa el token en el cuerpo.
+          schema:
+            type: string
+            example: 51872eca5efedcf424db4cf5afd16a9d00ad25b743a034c9c221afc85d18dcd5e4ad6e3f08607550
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: "51872eca5efedcf424db4cf5afd16a9d00ad25b743a034c9c221afc85d18dcd5e4ad6e3f08607550"
+      responses:
+        "200":
+          description: El token de actualización se revocó correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Token revoked"
+        "400":
+          description: El token de actualización no es válido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid token"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /api-docs/:
+    get:
+      tags:
+        - Doc
+      parameters:
+        - name: "proxy"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+
+  /api-docs/{proxy+}:
+    get:
+      tags:
+        - Doc
+      parameters:
+        - name: "proxy"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+
+  /accounts/reset-password:
+    post:
+      tags:
+        - JWT Auth
+      summary: Restablecer la contraseña de una cuenta
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: "3c7f8d9c4cb348ff95a0b74a1452aa24fc9611bb76768bb9eafeeb826ddae2935f1880bc7713318f"
+                password:
+                  type: string
+                  example: "newPass123"
+                confirmPassword:
+                  type: string
+                  example: "newPass123"
+              required:
+                - token
+                - password
+                - confirmPassword
+      responses:
+        "200":
+          description: El restablecimiento de la contraseña se realizó correctamente, por lo que ahora puede iniciar sesión en la cuenta con la nueva contraseña
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Password reset successful, you can now login"
+        "400":
+          description: Error al restablecer la contraseña debido a un token no válido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid token"
+
+  /accounts:
+    get:
+      tags:
+        - JWT Auth
+      summary: Obtenga una lista de todas las cuentas
+      description: Restringido a usuarios administradores.
+      operationId: getAllAccounts
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Una variedad de todas las cuentas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: "5eb12e197e06a76ccdefc121"
+                    title:
+                      type: string
+                      example: "Mr"
+                    firstName:
+                      type: string
+                      example: "Jason"
+                    lastName:
+                      type: string
+                      example: "Watmore"
+                    email:
+                      type: string
+                      example: "newinntechsas@gmail.com"
+                    role:
+                      type: string
+                      example: "Admin"
+                    created:
+                      type: string
+                      example: "2020-05-05T09:12:57.848Z"
+                    updated:
+                      type: string
+                      example: "2020-05-08T03:11:21.553Z"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+    post:
+      tags:
+        - JWT Auth
+      summary: Crea una cuenta nueva
+      description: Restringido a usuarios administradores.
+      operationId: createAccount
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Mr"
+                phone:
+                  type: string
+                  example: "3217308020"
+                firstName:
+                  type: string
+                  example: "Jason"
+                lastName:
+                  type: string
+                  example: "Watmore"
+                email:
+                  type: string
+                  example: "newinntechsas@gmail.com"
+                password:
+                  type: string
+                  example: "pass123"
+                confirmPassword:
+                  type: string
+                  example: "pass123"
+                role:
+                  type: string
+                  example: "User o Admin"
+              required:
+                - title
+                - phone
+                - role
+                - firstName
+                - lastName
+                - email
+                - password
+                - confirmPassword
+      responses:
+        "200":
+          description: Cuenta creada correctamente, no se requiere verificación para cuentas creadas con este punto final. Se devuelven los detalles de la nueva cuenta.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "5eb12e197e06a76ccdefc121"
+                  title:
+                    type: string
+                    example: "Mr"
+                  firstName:
+                    type: string
+                    example: "Jason"
+                  lastName:
+                    type: string
+                    example: "Watmore"
+                  email:
+                    type: string
+                    example: "newinntechsas@gmail.com"
+                  role:
+                    type: string
+                    example: "Admin"
+                  created:
+                    type: string
+                    example: "2020-05-05T09:12:57.848Z"
+        "400":
+          description: El correo electrónico ya está registrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Email 'newinntechsas@gmail.com' is already registered"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+
+  /accounts/validate-reset-token:
+    post:
+      tags:
+        - JWT Auth
+      summary: Valide el token de restablecimiento de contraseña recibido por correo electrónico después de enviarlo a la ruta / cuentas / contraseña olvidada
+      operationId: validateResetToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: "3c7f8d9c4cb348ff95a0b74a1452aa24fc9611bb76768bb9eafeeb826ddae2935f1880bc7713318f"
+              required:
+                - token
+      responses:
+        "200":
+          description: El token es válido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Token is valid"
+        "400":
+          description: El token no es válido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid token"
+
+  /accounts/forgot-password:
+    post:
+      tags:
+        - JWT Auth
+      summary: Envíe la dirección de correo electrónico para restablecer la contraseña de una cuenta
+      operationId: forgotPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "newinntechsas@gmail.com"
+              required:
+                - email
+      responses:
+        "200":
+          description: Se recibió la solicitud y se envió un correo electrónico a la dirección especificada con instrucciones para restablecer la contraseña (si la dirección de correo electrónico está asociada con una cuenta)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Please check your email for password reset instructions"
+
+  /db/sync:
+    head:
+      tags:
+        - Utils
+      x-amazon-apigateway-integration:
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${NewinntechFunctions.Arn}/invocations"
+        passthroughBehavior: "when_no_match"
+        type: "aws_proxy"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    UnauthorizedError:
+      description: Falta el token de acceso o no es válido, o el usuario no tiene acceso para realizar la acción
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Unauthorized"
+    NotFoundError:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Not Found"

@@ -7,14 +7,13 @@
 
  /**
  * @description Controlador principal para la documentacion de Swagger
- */
-  const express = require('express');
-  const router = express.Router();
-  const swaggerUi = require('swagger-ui-express');
-  const YAML = require('yamljs');
-  const swaggerDocument = YAML.load('./swagger.yaml'); //Ruta archivo Swagger
-  
-  router.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocument)); //Creacion Endpoint Swagger
-  
-  module.exports = router;
-  
+*/
+const express = require('express');
+const router = express.Router();
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const swaggerDocument = YAML.load('./swagger.yaml'); //Ruta archivo Swagger
+
+router.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocument)); //Creacion Endpoint Swagger
+
+module.exports = router;

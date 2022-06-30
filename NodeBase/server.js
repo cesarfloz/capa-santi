@@ -21,5 +21,8 @@ app.use(cookieParser())
 
 app.use(cors({origin:'*', credentials:true, optionsSuccessStatus:200}))
 app.use('/operaciones',require('./operaciones/routes'))
+// swagger docs route
+app.use('/api-docs', require('./_helpers/swagger'));
+app.use('/db', require('./_helpers/db'));
 
 module.exports = app;
