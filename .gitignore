@@ -2,4 +2,4 @@
 \NodeBase\package-lock.json
 \NodeBase\package.json
 \DockerDB\.env
-node_modules
+\NodeBase\node_modules
