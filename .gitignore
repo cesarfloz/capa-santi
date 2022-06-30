@@ -1,5 +1,5 @@
-/NodeBase/.env
-/NodeBase/package-lock.json
-/NodeBase/package.json
-/DockerDB/.env
-/odeBase/node_modules
+NodeBase/.env
+NodeBase/package-lock.json
+NodeBase/package.json
+DockerDB/.env
+NodeBase/node_modules
